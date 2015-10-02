@@ -1,14 +1,13 @@
 " @Author:      Tom Link (micathom AT gmail com?subject=[vim])
 " @GIT:         http://github.com/tomtom/enabler_vim/
 " @License:     GPL (see http://www.gnu.org/licenses/gpl.txt)
-" @Revision:    100
-" GetLatestVimScripts: 0 0 :AutoInstall: enabler.vim
-" Enable plugins
+" @Revision:    111
+" GetLatestVimScripts: 5101 0 enabler.vim
 
 if &cp || exists("loaded_enabler")
     finish
 endif
-let loaded_enabler = 1
+let loaded_enabler = 100
 
 let s:save_cpo = &cpo
 set cpo&vim
@@ -16,7 +15,9 @@ set cpo&vim
 
 if !exists('g:enabler_autofile')
     "                                                 *autoenabler.vim*
-    " If non-empty, load this file with enabler definitions on startup.
+    " If non-empty, |:Enablegenerate| writes stub commands to this file. 
+    " You can use |:Autoenabler| (e.g. in |vimrc|) to load the file into 
+    " vim.
     let g:enabler_autofile = split(&rtp, ',')[0] .'/autoenabler.vim'   "{{{2
 endif
 
@@ -61,7 +62,7 @@ command! -nargs=+ -complete=custom,enabler#Complete Enablefilepattern call enabl
 "   :Enablefiletype scala scala-vim
 command! -bar -nargs=+ -complete=custom,enabler#Complete Enablefiletype call enabler#Ftplugin(<f-args>)
 
-" :display: :Enablecommand[!] PLUGIN [OPTIONS] COMMAND
+" :display: :Enablecommand PLUGIN [OPTIONS] COMMAND
 " Define a dummy COMMAND that will load PLUGINS upon first invocation.
 " The dummy command will be deleted. It is assumed that one of the 
 " loaded PLUGINS will redefine the command.
@@ -69,8 +70,11 @@ command! -bar -nargs=+ -complete=custom,enabler#Complete Enablefiletype call ena
 " OPTIONS is a list of |:command|'s arguments.
 "
 " Example:
-"   :Enablecommand TMarks tmarks_vim
+"   :Enablecommand tmarks_vim TMarks
 command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommand let s:tmp = [<f-args>] | call enabler#Command(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
+
+" :display: :Enablecommands PLUGIN [OPTIONS] COMMAND...
+command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommands let s:tmp = [<f-args>] | call enabler#Commands(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
 
 " :display: :Enablemap PLUGIN [MAPCMD] [MAPARGS] LHS [RHS]
 " Call |enabler#Map()| with MAP and [PLUGIN] as arguments.
@@ -81,6 +85,12 @@ command! -bar -nargs=+ -complete=custom,enabler#Complete Enablecommand let s:tmp
 "   :Enablermap tmarks_vim <silent> <f2> :TMarks<cr>
 "   :Enablermap ttoc_vim inoremap <silent> <f10> :TToC<cr>
 command! -nargs=+ -complete=custom,enabler#Complete Enablemap let s:tmp = [<f-args>] | call enabler#Map(s:tmp[0], s:tmp[1:-1]) | unlet! s:tmp
+
+" :display: Enableautocmd EVENT PATTERN PLUGIN[#GROUP]...
+" After loading PLUGIN, the |:doautocmd| will be called with GROUP, 
+" EVENT and the matching filename/expression (|<amatch>|). If GROUP is 
+" undefined, the PLUGIN name will be used.
+command! -bar -nargs=+ Enableautocmd call enabler#Autocmd(<f-args>)
 
 " Update the list of known plugins -- e.g. after installing a new 
 " plugin while VIM is running.
